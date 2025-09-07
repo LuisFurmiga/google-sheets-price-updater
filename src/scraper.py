@@ -1,4 +1,5 @@
 import re
+import tempfile
 from config_vars import CHROME_PROFILE_PATH, DEBUG_PORT, MY_FOREX, OPEN_MY_CHROME_ACCOUNT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -22,15 +23,24 @@ class ItemScraper:
         Configura o WebDriver para uso com o Chrome.
         """
         options = webdriver.ChromeOptions()
+        service = Service(
+                ChromeDriverManager().install(),
+                log_path="NUL"  # <- Caso queira bloquear Logs no Linux use "/dev/null"
+            )
         if not OPEN_MY_CHROME_ACCOUNT:
-            options.add_argument("--headless=new") 
+            options.add_argument("--headless=new")
             options.add_argument("--disable-gpu")
-            options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36")
-            options.add_argument(f"user-data-dir={CHROME_PROFILE_PATH}")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--log-level=3")
+            options.add_argument("user-agent=Mozilla/5.0")
+            # Criar diretório temporário para o perfil
+            #temp_profile_dir = tempfile.mkdtemp()
+            #options.add_argument(f"--user-data-dir={temp_profile_dir}")
         else:
             options.debugger_address = f"127.0.0.1:{DEBUG_PORT}"
 
-        return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        return webdriver.Chrome(service=service, options=options)
 
     def get_item_price(self, item_name):
         """
