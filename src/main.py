@@ -2,23 +2,26 @@ from config_vars import EMPTY_ITEM_NAME_FINISH_THE_PROGRAM, MY_FOREX, OPEN_MY_CH
 from google_api import GoogleAPISheet
 from open_browser import open_chrome, close_chrome
 from scraper import ItemScraper
-import requests
+from selenium.webdriver.remote.remote_connection import LOGGER
 import time
+import logging
+
 
 def get_exchange_rate(from_currency, to_currency=MY_FOREX):
     """
-    Obtém a taxa de câmbio da API AwesomeAPI.
-    Exemplo: get_exchange_rate("USD") retorna a taxa de USD para MY_FOREX(BRL).
+    Lê o valor atual da cotação de moeda da aba 'Forex' da planilha.
     """
-    url = f"https://economia.awesomeapi.com.br/json/last/{from_currency}-{to_currency}"
-    response = requests.get(url)
+    sheet = GoogleAPISheet().setup_google_api(SHEET_URL)
+    forex_sheet = sheet.spreadsheet.worksheet("Forex")  # Nome da aba
+    forex_sheet.update_acell("A2", from_currency)
+    forex_sheet.update_acell("A5", to_currency)
 
-    if response.status_code == 200:
-        data = response.json()
-        key = f"{from_currency}{to_currency}"
-        if key in data:
-            return float(data[key]["low"])  # Retorna o valor mais baixo do dia
-    return None  # Retorna None se houver erro
+    try:
+        rate = forex_sheet.acell("C2").value.replace(",", ".")
+        return float(rate)
+    except Exception as e:
+        print(f"Erro ao ler taxa de câmbio da planilha: {e}")
+        return None
 
 def update_spreadsheet():
     """
@@ -82,8 +85,7 @@ def update_spreadsheet():
     scraper.close_driver()  # Encerra o WebDriver após a execução
 
 if __name__ == "__main__":
-    if OPEN_MY_CHROME_ACCOUNT:
-        chrome_process = open_chrome()
+    LOGGER.setLevel(logging.WARNING)
+    chrome_process = open_chrome()
     update_spreadsheet()
-    if OPEN_MY_CHROME_ACCOUNT:
-        close_chrome(chrome_process)
+    close_chrome(chrome_process)
