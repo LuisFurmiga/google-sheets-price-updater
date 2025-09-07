@@ -11,7 +11,7 @@ DEBUG_PORT = "9222"
 EMPTY_ITEM_NAME_FINISH_THE_PROGRAM = True
 
 # Caso queira usar um perfil com Cookies e sessão logada, True. Caso contrario, False
-OPEN_MY_CHROME_ACCOUNT = True
+OPEN_MY_CHROME_ACCOUNT = False
 
 # A moeda base que estou utilizando e não precisa de conversão caso venha nesse valor
 MY_FOREX = "BRL"
